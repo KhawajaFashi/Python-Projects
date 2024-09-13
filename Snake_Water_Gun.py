@@ -1,5 +1,4 @@
 from random import randint
-
 snake = 1
 water = 2
 gun = 3
