@@ -5,11 +5,8 @@ Welcome to my Python Projects repository! This repository contains a variety of 
 ## Table of Contents
 1. [Overview](#overview)
 2. [Projects List](#projects-list)
-3. [Installation](#installation)
-4. [Usage](#usage)
-5. [Contributing](#contributing)
-6. [License](#license)
-7. [Contact](#contact)
+3. [Contributing](#contributing)
+4. [Contact](#contact)
 
 ## Overview
 This repository contains multiple Python projects that demonstrate various programming concepts and problem-solving techniques. From beginner-friendly projects to more advanced applications, these projects are designed to improve my Python skills and contribute to the open-source community.
