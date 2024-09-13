@@ -6,7 +6,7 @@ guesses = 0
 while True:
     guess = int(input("Guess a number between 0 and 1000: "))
     if guess == num:
-        print("Congratulations you guessed correctly You Won!")
+        print(f"Congratulations you guessed correctly in {guess} guesses")
         break
     elif guess > num:
         print("Too high, try again")
