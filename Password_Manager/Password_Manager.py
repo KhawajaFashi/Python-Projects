@@ -4,7 +4,7 @@ def view():
         for line in file.readlines():
             check = False
             username, password, key = line.strip().split("|")
-            key=int(key)
+            key = int(key)
             if identify == username:
                 if key == pwd:
                     print("You were identified")
@@ -25,7 +25,9 @@ def view():
 def add():
     with open("passwords.txt", "a") as file:
         name = input("Please Enter your name: ")
-        password = input("Please Enter your password without spaces and only lowercase Alphabets: ")
+        password = input(
+            "Please Enter your password without spaces and only lowercase Alphabets: "
+        )
         for i in range(len(password)):
             new_char = chr(ord(password[i]) + pwd)
             if ord(password[i]) + pwd > 122:
