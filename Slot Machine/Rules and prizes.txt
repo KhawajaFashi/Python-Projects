@@ -1,0 +1,51 @@
+Slot Machine Game - Rules and Prizes
+This game simulates a slot machine where you can bet on up to 3 lines. The objective is to match
+symbols across the horizontal rows (lines) to win prizes.
+
+1. Deposit:
+   - You start by depositing an amount of money, which will be used for betting.
+   - You cannot play without depositing funds.
+
+2. Betting:
+   - You can bet on 1, 2, or 3 lines (each line is a horizontal row on the slot machine).
+   - You also choose the amount to bet per line. The bet amount must be between $1 and $100.
+   - The total bet is calculated as (number of lines) * (amount per line).
+   - Example: If you bet $10 on 3 lines, your total bet is $30.
+
+3. Symbols:
+   - The slot machine has 4 symbols with different values:
+     - 'A' appears 2 times and is worth 5x the bet per line.
+     - 'B' appears 4 times and is worth 4x the bet per line.
+     - 'C' appears 6 times and is worth 3x the bet per line.
+     - 'D' appears 8 times and is worth 2x the bet per line.
+
+4. Spinning the Slot Machine:
+    - The slot machine has 3 rows and 3 columns, with each slot randomly filled with one of the
+     four symbols ('A', 'B', 'C', or 'D').
+    - After the spin, the machine displays the result for each row (line).
+
+5. Winning:
+   - To win, all symbols in a row (line) must match. For example, if all symbols in Row 1 are 'A',
+      you win based on the value of symbol 'A'.
+   - Your winnings are calculated by multiplying your bet per line by the symbol's value:
+     - 'A': 5x your bet per line.
+     - 'B': 4x your bet per line.
+     - 'C': 3x your bet per line.
+     - 'D': 2x your bet per line.
+   - You can win on multiple lines in a single spin, and the winnings are added together.
+
+6. Example:
+    - You bet $10 on 3 lines, so your total bet is $30.
+    - The symbols in each row are:
+      Row 1: A | A | A
+      Row 2: B | C | D
+      Row 3: C | C | C
+    - You win on Row 1 ('A') and Row 3 ('C').
+    - Row 1 winnings: 5x your $10 bet = $50.
+    - Row 3 winnings: 3x your $10 bet = $30.
+    - Total winnings: $50 + $30 = $80.
+    - Your balance is updated as (current balance - total bet + winnings).
+
+7. Game Over:
+    - If your balance reaches $0, the game ends.
+    - You can choose to quit at any time and cash out your balance.
