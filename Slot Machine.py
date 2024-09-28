@@ -1,4 +1,4 @@
-#Its Slot Machine Game
+#Its a Slot Machine Game
 #Disclaimer:  Not supporting Betting Its just for practice
 
 
