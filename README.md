@@ -9,7 +9,7 @@ Welcome to my Python Projects repository! This repository contains a variety of 
 4. [Contact](#contact)
 
 ## Overview
-This repository contains multiple Python projects that demonstrate various programming concepts and problem-solving techniques. From beginner-friendly projects to more advanced applications, these projects are designed to improve my Python skills and contribute to the open-source community.
+This repository contains multiple Python projects that demonstrate various programming concepts and problem-solving techniques. From beginner-friendly projects to more advanced applications, these projects are designed to improve my Python skills.
 
 ## Projects List
 Here are some of the key projects in this repository:
