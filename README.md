@@ -20,8 +20,6 @@ Here are some of the key projects in this repository:
   
 - **Project 3**: Brief description of project 3.
 
-_(Add more projects as needed)_
-
 ## Contributing
 Contributions are welcome! If you'd like to contribute to any of the projects in this repository, follow these steps:
 
@@ -30,8 +28,6 @@ Contributions are welcome! If you'd like to contribute to any of the projects in
 3. Make your changes and commit them
 4. Push your branch to your forked repository
 5. Open a pull request and describe what changes you've made.
-
-### **Contact**
 
 ## Contact
 If you have any questions, feedback, or suggestions, feel free to reach out:
