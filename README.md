@@ -20,8 +20,6 @@ Here are some of the key projects in this repository:
   
 - **Project 3**: Brief description of project 3.
 
-_(Add more projects as needed)_
-
 ## Contributing
 Contributions are welcome! If you'd like to contribute to any of the projects in this repository, follow these steps:
 
