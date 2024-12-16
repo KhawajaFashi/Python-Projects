@@ -29,8 +29,6 @@ Contributions are welcome! If you'd like to contribute to any of the projects in
 4. Push your branch to your forked repository
 5. Open a pull request and describe what changes you've made.
 
-### **Contact**
-
 ## Contact
 If you have any questions, feedback, or suggestions, feel free to reach out:
 
