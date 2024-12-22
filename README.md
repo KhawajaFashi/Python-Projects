@@ -24,6 +24,8 @@ Here are some of the key projects in this repository:
 - **Number Guessing Game**: A guessing game where players try to guess a randomly generated number. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Number_Guessing.py)
 - **PIG Game**: A simple dice game simulation. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/PIG.py)
 - **Password Generator**: Generate strong and secure passwords. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Password_Generator.py)
+- Currency Converter: A tool to convert between different currencies using live exchange rates. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Curreny_Converter.py)
+- NBA Stats: A project to analyze and display statistics for NBA players or teams. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/NBA_Stats.py)
 - **Path Finder**: A simple tool to identify and manage file paths. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Path_Finder.py)
 - **Snake Water Gun**: A fun Snake-Water-Gun game for entertainment. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Snake_Water_Gun.py)
 - **Timed Math Challenge**: A math quiz with time constraints for practicing calculations. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Timed%20Math%20Challenge.py)
