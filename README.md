@@ -9,7 +9,7 @@ Welcome to my Python Projects repository! This repository contains a variety of 
 4. [Contact](#contact)
 
 ## Overview
-This repository contains multiple Python projects that demonstrate various programming concepts and problem-solving techniques. From beginner-friendly projects to more advanced applications, these projects are designed to improve my Python skills.
+This repository contains multiple Python projects that demonstrate various programming concepts and problem-solving techniques. From beginner-friendly projects to more advanced applications, these projects are designed to improve my Python skills and contribute to the open-source community.
 
 ## Projects List
 Here are some of the key projects in this repository:
@@ -17,19 +17,24 @@ Here are some of the key projects in this repository:
 - **Alarm Clock**: A simple alarm clock application to set alarms and notify users. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/tree/main/Alarm%20Clock)
 - **Madlibs Generator**: A fun game to generate creative sentences using user input. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/tree/main/Madlibs%20Generator)
 - **Password Manager**: Manage and securely store passwords for different accounts. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/tree/main/Password_Manager)
+- **Python Scripting Project**: A scripting project demonstrating automation and file handling. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/tree/main/Python-Scripting-Project)
 - **Slot Machine Game**: A simple slot machine simulation game for entertainment. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/tree/main/Slot%20Machine)
 - **Typing Test**: Test typing speed and accuracy with this typing test tool. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/tree/main/Typing%20test)
+- **Aim Trainer**: A game built using Pygame to improve mouse accuracy and reaction time. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/AimTrainer.py)
+- **Automated Folder Backup**: Automates folder backup using scheduling and time. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Automated_folder_backup.py)
 - **Choose Your Own Adventure**: An interactive storytelling game where users choose the path of the story. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Choose_Your_Own_Adventure.py)
 - **Computer Quiz**: A simple quiz game to test computer knowledge. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Computer_Quiz.py)
+- **Currency Converter**: A tool to convert currencies using real-time exchange rates. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Currency_Converter.py)
+- **MasterMind Game**: A game that challenges players to guess a secret code. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/MasterMindGame.py)
+- **NBA Stats**: Analyze and display NBA player statistics. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/NBA_Stats.py)
 - **Number Guessing Game**: A guessing game where players try to guess a randomly generated number. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Number_Guessing.py)
 - **PIG Game**: A simple dice game simulation. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/PIG.py)
 - **Password Generator**: Generate strong and secure passwords. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Password_Generator.py)
-- Currency Converter: A tool to convert between different currencies using live exchange rates. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Curreny_Converter.py)
-- NBA Stats: A project to analyze and display statistics for NBA players or teams. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/NBA_Stats.py)
 - **Path Finder**: A simple tool to identify and manage file paths. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Path_Finder.py)
 - **Snake Water Gun**: A fun Snake-Water-Gun game for entertainment. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Snake_Water_Gun.py)
 - **Timed Math Challenge**: A math quiz with time constraints for practicing calculations. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/Timed%20Math%20Challenge.py)
 - **Turtle Race**: A simulation of a race between turtles using Python's turtle library. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/TurtleRace.py)
+- **YouTube Video Downloader**: A tool with a GUI built using Tkinter to download YouTube videos. [(GitHub link)](https://github.com/KhawajaFashi/Python-Projects/blob/main/YouTubeVideoDownloader.py)
 
 ## Contributing
 Contributions are welcome! If you'd like to contribute to any of the projects in this repository, follow these steps:
