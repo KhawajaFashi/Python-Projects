@@ -24,7 +24,6 @@ def get_data():
     else:
         print("error API request failed details", response.text)
 
-    # return jsonify({"response": response_text})
 
 
 if __name__ == "__main__":
