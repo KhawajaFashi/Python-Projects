@@ -4,6 +4,9 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 import threading
 import os
+import subprocess
+import imageio_ffmpeg
+import re
 
 # Set theme and color palette
 ctk.set_appearance_mode("Dark")
@@ -23,7 +26,9 @@ class YouTubeDownloaderApp(ctk.CTk):
         self.save_dir_var = tk.StringVar()
         self.resolution_var = tk.StringVar()
         self.yt_object = None
+        self.yt_object = None
         self.resolutions = []
+        self.resolution_sizes = {} # Store sizes for each resolution
 
         # Layout Configuration
         self.grid_columnconfigure(0, weight=1)
@@ -95,9 +100,13 @@ class YouTubeDownloaderApp(ctk.CTk):
             self.options_frame,
             variable=self.resolution_var,
             values=["Fetch Video First"],
+            command=self.update_size_label,
             state="disabled"
         )
-        self.res_option_menu.grid(row=1, column=0, padx=20, pady=(5, 20), sticky="ew")
+        self.res_option_menu.grid(row=1, column=0, padx=20, pady=(5, 5), sticky="ew")
+        
+        self.size_label = ctk.CTkLabel(self.options_frame, text="", text_color="gray", font=("Roboto", 12))
+        self.size_label.grid(row=2, column=0, padx=20, pady=(0, 10), sticky="w")
 
         # Save Location
         self.loc_label = ctk.CTkLabel(self.options_frame, text="Save Location:", font=("Roboto", 12))
@@ -124,6 +133,7 @@ class YouTubeDownloaderApp(ctk.CTk):
             font=("Roboto", 18, "bold"),
             fg_color="#2CC985",
             hover_color="#25A970",
+            text_color="white",  # Explicitly set text color
             state="disabled"
         )
         self.download_btn.grid(row=4, column=0, padx=40, pady=30, sticky="ew")
@@ -153,12 +163,30 @@ class YouTubeDownloaderApp(ctk.CTk):
             self.yt_object = YouTube(url, on_progress_callback=self.on_progress)
             self.yt_object.check_availability()
             
-            # Get streams
-            streams = self.yt_object.streams.filter(progressive=False, file_extension="mp4")
+            # Get streams - Remove file_extension filter to get 4K/WebM
+            streams = self.yt_object.streams.filter(progressive=False)
             self.resolutions = sorted(list(set([stream.resolution for stream in streams if stream.resolution])), key=lambda x: int(x[:-1]) if x[:-1].isdigit() else 0, reverse=True)
             
             if not self.resolutions:
                  raise Exception("No suitable streams found")
+
+            # Calculate sizes for each resolution
+            self.resolution_sizes = {}
+            audio_stream = self.yt_object.streams.get_audio_only()
+            audio_size = audio_stream.filesize if audio_stream else 0
+            
+            for res in self.resolutions:
+                # Try to find adaptive video stream first
+                video_stream = self.yt_object.streams.filter(res=res, adaptive=True).first()
+                if video_stream:
+                    self.resolution_sizes[res] = video_stream.filesize + audio_size
+                else:
+                    # Fallback to progressive
+                    prog_stream = self.yt_object.streams.filter(res=res, progressive=True).first()
+                    if prog_stream:
+                        self.resolution_sizes[res] = prog_stream.filesize
+                    else:
+                        self.resolution_sizes[res] = 0 # Unknown
 
             # Update UI in main thread
             self.after(0, self.update_ui_after_fetch, True)
@@ -174,6 +202,7 @@ class YouTubeDownloaderApp(ctk.CTk):
             self.video_title_label.configure(text=self.yt_object.title)
             self.res_option_menu.configure(values=self.resolutions, state="normal")
             self.res_option_menu.set(self.resolutions[0])
+            self.update_size_label(self.resolutions[0])
             self.download_btn.configure(state="normal")
             self.status_label.configure(text="Video found! Select resolution and download.", text_color="#2CC985")
         else:
@@ -181,6 +210,14 @@ class YouTubeDownloaderApp(ctk.CTk):
             self.res_option_menu.configure(values=["Error"], state="disabled")
             self.download_btn.configure(state="disabled")
             self.status_label.configure(text=f"Error: {error_msg}", text_color="#FF5555")
+
+    def update_size_label(self, choice):
+        size_bytes = self.resolution_sizes.get(choice, 0)
+        if size_bytes > 0:
+            size_mb = size_bytes / (1024 * 1024)
+            self.size_label.configure(text=f"Est. Size: {size_mb:.1f} MB")
+        else:
+            self.size_label.configure(text="Size: Unknown")
 
     def select_folder(self):
         folder = filedialog.askdirectory()
@@ -198,18 +235,86 @@ class YouTubeDownloaderApp(ctk.CTk):
         
         threading.Thread(target=self.download_video, daemon=True).start()
 
+    def sanitize_filename(self, filename):
+        return re.sub(r'[<>:"/\\|?*]', '_', filename)
+
     def download_video(self):
         try:
             res = self.resolution_var.get()
-            stream = self.yt_object.streams.filter(res=res, file_extension='mp4').first()
+            output_path = self.save_dir_var.get()
             
-            if not stream:
-                 # Fallback if exact match fails (rare with filter)
-                 stream = self.yt_object.streams.get_highest_resolution()
+            # Get the video stream
+            video_stream = self.yt_object.streams.filter(res=res, adaptive=True).first()
+            if not video_stream:
+                # Fallback to progressive if adaptive not found (usually for lower res)
+                video_stream = self.yt_object.streams.filter(res=res, progressive=True).first()
+            
+            if not video_stream:
+                 # Fallback if exact match fails
+                 video_stream = self.yt_object.streams.filter(res=res).first()
 
-            stream.download(output_path=self.save_dir_var.get())
-            
+            if not video_stream:
+                raise Exception("Stream not found")
+
+            # Check if the stream is adaptive (video only)
+            if video_stream.is_adaptive:
+                self.status_label.configure(text="Downloading Video Stream...", text_color="white")
+                
+                # Sanitize filenames
+                safe_title = self.sanitize_filename(video_stream.default_filename)
+                video_filename = f"temp_video_{safe_title}"
+                audio_filename = f"temp_audio_{safe_title}"
+                
+                # Force output to be .mp4 to support both VP9 (from WebM) and AAC (from audio)
+                # WebM container does not support AAC audio.
+                final_filename = os.path.splitext(safe_title)[0] + ".mp4"
+                
+                # Download with explicit filenames
+                video_stream.download(output_path=output_path, filename=video_filename)
+                
+                self.status_label.configure(text="Downloading Audio Stream...", text_color="white")
+                audio_stream = self.yt_object.streams.get_audio_only()
+                audio_stream.download(output_path=output_path, filename=audio_filename)
+                
+                self.status_label.configure(text="Merging Video and Audio...", text_color="white")
+                
+                # Normalize paths to handle mixed slashes and ensure compatibility
+                video_path = os.path.normpath(os.path.join(output_path, video_filename))
+                audio_path = os.path.normpath(os.path.join(output_path, audio_filename))
+                final_path = os.path.normpath(os.path.join(output_path, final_filename))
+                
+                # Use imageio-ffmpeg to get the ffmpeg executable path
+                ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+                
+                # Merge using ffmpeg
+                cmd = [
+                    ffmpeg_exe, '-y',
+                    '-i', video_path,
+                    '-i', audio_path,
+                    '-c:v', 'copy',
+                    '-c:a', 'aac',
+                    final_path
+                ]
+                
+                # Run ffmpeg and capture output
+                try:
+                    subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                except subprocess.CalledProcessError as e:
+                    # If ffmpeg fails, raise an exception with the stderr output
+                    raise Exception(f"FFmpeg failed: {e.stderr}")
+                
+                # Cleanup temp files
+                if os.path.exists(video_path):
+                    os.remove(video_path)
+                if os.path.exists(audio_path):
+                    os.remove(audio_path)
+                
+            else:
+                # Progressive stream (has audio and video)
+                video_stream.download(output_path=output_path)
+
             self.after(0, self.download_complete, True)
+            
         except Exception as e:
             self.after(0, self.download_complete, False, str(e))
 
