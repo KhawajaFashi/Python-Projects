@@ -1,6 +1,6 @@
 import requests
 
-API_KEY = "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"
+API_KEY = "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"
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 headers = {
     "Authorization": f"Bearer {API_KEY}",
@@ -23,7 +23,6 @@ def get_data():
         print(f"\n{answer}\n")
     else:
         print("error API request failed details", response.text)
-
 
 
 if __name__ == "__main__":

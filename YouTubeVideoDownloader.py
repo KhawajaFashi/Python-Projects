@@ -1,260 +1,246 @@
+import customtkinter as ctk
 from pytubefix import YouTube
 import tkinter as tk
-from tkinter import filedialog
-from tkinter import *
-from tkinter import ttk
-from tkinter import font
+from tkinter import filedialog, messagebox
+import threading
+import os
 
-# Global colors
-background_color = "gray"
-button_background_color = "dim gray"
-foreground_color = "white"
-URL_save = None
+# Set theme and color palette
+ctk.set_appearance_mode("Dark")
+ctk.set_default_color_theme("blue")
 
+class YouTubeDownloaderApp(ctk.CTk):
+    def __init__(self):
+        super().__init__()
 
-def get_video(url, root):
+        # Window setup
+        self.title("YouTube Video Downloader")
+        self.geometry("800x600")
+        self.resizable(False, False)
 
-    yt = YouTube(url)
-    return yt
+        # Variables
+        self.url_var = tk.StringVar()
+        self.save_dir_var = tk.StringVar()
+        self.resolution_var = tk.StringVar()
+        self.yt_object = None
+        self.resolutions = []
 
+        # Layout Configuration
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=0) # Title
+        self.grid_rowconfigure(1, weight=0) # URL Input
+        self.grid_rowconfigure(2, weight=0) # Video Info
+        self.grid_rowconfigure(3, weight=0) # Options
+        self.grid_rowconfigure(4, weight=0) # Progress
+        self.grid_rowconfigure(5, weight=1) # Spacer
 
-def extract_resolution(url, root):
-    try:
-        yt = get_video(url, root)
-        streams = yt.streams.filter(progressive=False, file_extension="mp4")
-        resolutions = [stream.resolution for stream in streams if stream.resolution]
-        resolutions = list(set(resolutions))
-        resolutions.sort(key=lambda x: (len(x), x))
-        print("\nVideo was successfully found!\n")
-        return resolutions
-    except Exception as e:
-        print(f"Error: {e}")
-        return ["Invalid URL or No Resolutions Found"]
+        self.create_widgets()
 
+    def create_widgets(self):
+        # Title
+        self.title_label = ctk.CTkLabel(
+            self, 
+            text="YouTube Video Downloader", 
+            font=("Roboto", 28, "bold"),
+            text_color="#3B8ED0"
+        )
+        self.title_label.grid(row=0, column=0, pady=(30, 20), sticky="ew")
 
-def getUrl(root):
-    custom_font = font.Font(
-        family="Arial",
-        size=16,
-        weight="bold",
-    )
-    Label(
-        root,
-        text="Enter your YouTube URL: ",
-        padx=20,
-        bg=background_color,
-        fg=foreground_color,
-        font=custom_font,
-    ).grid(row=1, columnspan=1)
-    url_var = tk.StringVar()
-    urlEntry = tk.Entry(root, textvariable=url_var, width=40, font=custom_font)
-    urlEntry.grid(row=1, column=1)
-    return url_var
+        # URL Input Frame
+        self.url_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.url_frame.grid(row=1, column=0, padx=40, pady=10, sticky="ew")
+        self.url_frame.grid_columnconfigure(0, weight=1)
 
+        self.url_entry = ctk.CTkEntry(
+            self.url_frame, 
+            textvariable=self.url_var,
+            placeholder_text="Paste YouTube URL here...",
+            height=40,
+            font=("Roboto", 14)
+        )
+        self.url_entry.grid(row=0, column=0, padx=(0, 10), sticky="ew")
 
-def Downloading_Interface(root, save_dir, resolution):
+        self.fetch_btn = ctk.CTkButton(
+            self.url_frame, 
+            text="Get Video", 
+            command=self.start_fetch_thread,
+            height=40,
+            font=("Roboto", 14, "bold")
+        )
+        self.fetch_btn.grid(row=0, column=1, padx=0)
 
-    progress_label = tk.Label(
-        root, text="Progress will appear here.", font=("Arial", 14, "bold")
-    )
-    progress_label.grid(row=9, column=1)
+        # Video Info Section (Initially Hidden or Empty)
+        self.info_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.info_frame.grid(row=2, column=0, padx=40, pady=20, sticky="ew")
+        self.info_frame.grid_columnconfigure(0, weight=1)
 
-    progress_bar = ttk.Progressbar(
-        root, orient="horizontal", length=300, mode="determinate"
-    )
-    progress_bar.grid(row=10, column=1, pady=25)
+        self.video_title_label = ctk.CTkLabel(
+            self.info_frame, 
+            text="", 
+            font=("Roboto", 16, "bold"),
+            wraplength=700
+        )
+        self.video_title_label.grid(row=0, column=0, pady=5)
 
-    def progress_function(stream, chunk, bytes_remaining):
-        total_size = stream.filesize
-        bytes_downloaded = total_size - bytes_remaining
-        total_size_mb = total_size / (1024 * 1024)
-        bytes_downloaded_mb = bytes_downloaded / (1024 * 1024)
-        percentage = (bytes_downloaded_mb / total_size_mb) * 100
+        # Options Frame
+        self.options_frame = ctk.CTkFrame(self)
+        self.options_frame.grid(row=3, column=0, padx=40, pady=10, sticky="ew")
+        self.options_frame.grid_columnconfigure((0, 1), weight=1)
 
-        if total_size_mb > 1000:
-            progress_text = f"Downloaded: {(bytes_downloaded_mb / 1024):.2f} / {(total_size_mb / 1024):.2f} GB ({percentage:.2f}%)"
-        else:
-            progress_text = f"Downloaded: {bytes_downloaded_mb:.2f} / {total_size_mb:.2f} MB ({percentage:.2f}%)"
+        # Resolution Dropdown
+        self.res_label = ctk.CTkLabel(self.options_frame, text="Resolution:", font=("Roboto", 12))
+        self.res_label.grid(row=0, column=0, padx=20, pady=(15, 0), sticky="w")
+        
+        self.res_option_menu = ctk.CTkOptionMenu(
+            self.options_frame,
+            variable=self.resolution_var,
+            values=["Fetch Video First"],
+            state="disabled"
+        )
+        self.res_option_menu.grid(row=1, column=0, padx=20, pady=(5, 20), sticky="ew")
 
-        progress_label.config(text=progress_text)
-        progress_bar["value"] = percentage
-        root.update_idletasks()
+        # Save Location
+        self.loc_label = ctk.CTkLabel(self.options_frame, text="Save Location:", font=("Roboto", 12))
+        self.loc_label.grid(row=0, column=1, padx=20, pady=(15, 0), sticky="w")
 
-    download_btn = tk.Button(
-        root,
-        text="Start Download",
-        fg=foreground_color,
-        bg=background_color,
-        font=("Arial", 16, "bold"),
-    )
-    download_btn.grid(row=8, column=1, columnspan=1, pady=25)
+        self.loc_btn = ctk.CTkButton(
+            self.options_frame,
+            text="Select Folder",
+            command=self.select_folder,
+            fg_color="#555555",
+            hover_color="#444444"
+        )
+        self.loc_btn.grid(row=1, column=1, padx=20, pady=(5, 20), sticky="ew")
+        
+        self.loc_display = ctk.CTkLabel(self.options_frame, textvariable=self.save_dir_var, text_color="gray", font=("Roboto", 10))
+        self.loc_display.grid(row=2, column=1, padx=20, pady=(0, 10), sticky="w")
 
-    def Download_video(event=None):
+        # Download Button
+        self.download_btn = ctk.CTkButton(
+            self, 
+            text="Download Video", 
+            command=self.start_download_thread,
+            height=50,
+            font=("Roboto", 18, "bold"),
+            fg_color="#2CC985",
+            hover_color="#25A970",
+            state="disabled"
+        )
+        self.download_btn.grid(row=4, column=0, padx=40, pady=30, sticky="ew")
+
+        # Progress Section
+        self.progress_bar = ctk.CTkProgressBar(self, height=15)
+        self.progress_bar.set(0)
+        self.progress_bar.grid(row=5, column=0, padx=40, pady=(0, 10), sticky="ew")
+        self.progress_bar.grid_remove() # Hide initially
+
+        self.status_label = ctk.CTkLabel(self, text="Ready", text_color="gray")
+        self.status_label.grid(row=6, column=0, pady=(0, 20))
+
+    def start_fetch_thread(self):
+        url = self.url_var.get()
+        if not url:
+            self.status_label.configure(text="Please enter a URL", text_color="#FF5555")
+            return
+        
+        self.fetch_btn.configure(state="disabled", text="Fetching...")
+        self.status_label.configure(text="Fetching video info...", text_color="white")
+        
+        threading.Thread(target=self.fetch_video_info, args=(url,), daemon=True).start()
+
+    def fetch_video_info(self, url):
         try:
-            yt = YouTube(URL_save, on_progress_callback=progress_function)
-            print(f"Video Title: {yt.title}")
-            streams = yt.streams.filter(progressive=False, file_extension="mp4")
-            if streams:
-                highest_res_stream = streams.filter(
-                    "", resolution
-                ).get_highest_resolution(False)
-                if highest_res_stream:
-                    highest_res_stream.download(output_path=save_dir)
-                    print("\nVideo Downloaded Successfully")
-                else:
-                    print("\nNo suitable stream found")
-            else:
-                print("\nNo streams found")
-        except Exception as error:
-            print(f"\nError: {error}")
+            self.yt_object = YouTube(url, on_progress_callback=self.on_progress)
+            self.yt_object.check_availability()
+            
+            # Get streams
+            streams = self.yt_object.streams.filter(progressive=False, file_extension="mp4")
+            self.resolutions = sorted(list(set([stream.resolution for stream in streams if stream.resolution])), key=lambda x: int(x[:-1]) if x[:-1].isdigit() else 0, reverse=True)
+            
+            if not self.resolutions:
+                 raise Exception("No suitable streams found")
 
-    try:
-        download_btn.bind("<Button-1>", Download_video)
-    except Exception as e:
-        print(e)
-
-
-def main_Interface(root):
-    custom_font = font.Font(
-        family="Arial",
-        size=16,
-        weight="bold",
-    )
-
-    def open_file_dialog(event=None):
-        folder = filedialog.askdirectory()
-        if folder:
-            save_dir_var.set(folder)
-            print(f"Selected Folder: {folder}")
-        return folder
-
-    def selectResolution(event=None):
-        resolution = combobox_var.get()
-        if resolution:
-            print(f"Selected Resolutio: {resolution}")
-            return resolution
-
-    def update_combobox():
-        url = url_var.get()
-        global URL_save
-        URL_save = url
-        if url:
-            resolutions = extract_resolution(url, root)
-            combobox_var.set("")
-            combobox["values"] = resolutions
-        else:
-            combobox_var.set("")
-            combobox["values"] = ["Enter a valid URL first"]
-
-    def use_selected_value(event=None):
-        resolution = combobox_var.get()
-        folder = save_dir_var.get()
-        try:
-            yt = get_video(URL_save, root)
-            Label(
-                root,
-                text=yt.title,
-                fg=foreground_color,
-                bg=background_color,
-                font=("Arial", 12, "bold"),
-                wraplength=250,
-            ).grid(row=7, column=0)
+            # Update UI in main thread
+            self.after(0, self.update_ui_after_fetch, True)
+            
         except Exception as e:
             print(f"Error: {e}")
-        Label(
-            root,
-            text=folder,
-            fg=foreground_color,
-            bg=background_color,
-            wraplength=250,
-            font=("Arial", 12, "bold"),
-        ).grid(row=7, column=1)
-        Label(
-            root,
-            text=resolution,
-            fg=foreground_color,
-            bg=background_color,
-            font=("Arial", 12, "bold"),
-        ).grid(row=7, column=2)
-        Downloading_Interface(root, folder, resolution)
+            self.after(0, self.update_ui_after_fetch, False, str(e))
 
-    combobox_var = tk.StringVar()
-    save_dir_var = tk.StringVar(value="")
-    Label(
-        root,
-        text="Welcome to YouTube Video Downloader!",
-        padx=200,
-        pady=50,
-        font=("Arial", 26, "bold"),
-        fg=foreground_color,
-        bg=background_color,
-    ).grid(row=0, columnspan=15)
+    def update_ui_after_fetch(self, success, error_msg=""):
+        self.fetch_btn.configure(state="normal", text="Get Video")
+        
+        if success:
+            self.video_title_label.configure(text=self.yt_object.title)
+            self.res_option_menu.configure(values=self.resolutions, state="normal")
+            self.res_option_menu.set(self.resolutions[0])
+            self.download_btn.configure(state="normal")
+            self.status_label.configure(text="Video found! Select resolution and download.", text_color="#2CC985")
+        else:
+            self.video_title_label.configure(text="")
+            self.res_option_menu.configure(values=["Error"], state="disabled")
+            self.download_btn.configure(state="disabled")
+            self.status_label.configure(text=f"Error: {error_msg}", text_color="#FF5555")
 
-    url_var = getUrl(root)
-    tk.Button(
-        root,
-        text="Get Video",
-        command=update_combobox,
-        bg=button_background_color,
-        font=("Arial", 11, "bold"),
-    ).grid(row=1, column=2, padx=18, columnspan=1)
+    def select_folder(self):
+        folder = filedialog.askdirectory()
+        if folder:
+            self.save_dir_var.set(folder)
 
-    Label(
-        root,
-        text="Select the resolution: ",
-        # padx=342,
-        fg=foreground_color,
-        bg=background_color,
-        font=custom_font,
-    ).grid(row=3, column=0, columnspan=1)
+    def start_download_thread(self):
+        if not self.save_dir_var.get():
+            self.status_label.configure(text="Please select a save location", text_color="#FF5555")
+            return
 
-    combobox = ttk.Combobox(
-        root,
-        textvariable=combobox_var,
-        values=["Enter the URL first"],
-        width=30,
-        font=custom_font,
-    )
-    combobox.grid(row=3, column=1, pady=35, padx=23)
+        self.download_btn.configure(state="disabled", text="Downloading...")
+        self.progress_bar.grid() # Show progress bar
+        self.progress_bar.set(0)
+        
+        threading.Thread(target=self.download_video, daemon=True).start()
 
-    use_button = tk.Button(
-        root,
-        text="Get Resolution and Folder",
-        bg=button_background_color,
-        font=("Arial", 11, "bold"),
-    )
-    use_button.grid(row=6, column=1, columnspan=1, pady=20)
+    def download_video(self):
+        try:
+            res = self.resolution_var.get()
+            stream = self.yt_object.streams.filter(res=res, file_extension='mp4').first()
+            
+            if not stream:
+                 # Fallback if exact match fails (rare with filter)
+                 stream = self.yt_object.streams.get_highest_resolution()
 
-    use_button.bind("<Button-1>", use_selected_value)
+            stream.download(output_path=self.save_dir_var.get())
+            
+            self.after(0, self.download_complete, True)
+        except Exception as e:
+            self.after(0, self.download_complete, False, str(e))
 
-    select_resolution_button = tk.Button(
-        root,
-        text="Select Resolution",
-        bg=button_background_color,
-        font=("Arial", 11, "bold"),
-    )
-    select_resolution_button.grid(row=3, column=2, columnspan=1)
+    def on_progress(self, stream, chunk, bytes_remaining):
+        total_size = stream.filesize
+        bytes_downloaded = total_size - bytes_remaining
+        percentage = bytes_downloaded / total_size
+        self.after(0, self.update_progress, percentage, bytes_downloaded, total_size)
 
-    select_resolution_button.bind("<Button-1>", selectResolution)
+    def update_progress(self, val, downloaded, total):
+        self.progress_bar.set(val)
+        
+        # Convert to MB
+        downloaded_mb = downloaded / (1024 * 1024)
+        total_mb = total / (1024 * 1024)
+        remaining_mb = total_mb - downloaded_mb
+        
+        progress_text = f"Downloading... {int(val*100)}% | {downloaded_mb:.1f}MB / {total_mb:.1f}MB | Remaining: {remaining_mb:.1f}MB"
+        self.status_label.configure(text=progress_text, text_color="white")
 
-    select_folder_button = tk.Button(
-        root,
-        text="Select Folder",
-        bg=button_background_color,
-        font=("Arial", 11, "bold"),
-    )
-    select_folder_button.grid(row=5, column=1, pady=2)
+    def download_complete(self, success, error_msg=""):
+        self.download_btn.configure(state="normal", text="Download Video")
+        
+        if success:
+            self.status_label.configure(text="Download Complete! ✅", text_color="#2CC985")
+            self.progress_bar.set(1)
+            messagebox.showinfo("Success", "Video Downloaded Successfully!")
+        else:
+            self.status_label.configure(text=f"Download Failed: {error_msg}", text_color="#FF5555")
+            self.progress_bar.grid_remove()
 
-    select_folder_button.bind("<Button-1>", open_file_dialog)
-
-
-def main():
-    print("Welcome to YouTube Video Downloader")
-    root = tk.Tk()
-    root.geometry("1000x630")
-    root.title("YouTube Video Download")
-    root.config(bg=background_color)
-    main_Interface(root)
-    root.mainloop()
-
-main()
+if __name__ == "__main__":
+    app = YouTubeDownloaderApp()
+    app.mainloop()
